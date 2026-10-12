@@ -2,7 +2,8 @@
 
 Treemap + heatmap view of per-process resource usage on macOS (an Activity Monitor alternative).
 
-- Size and color can each be switched between CPU, Memory, Energy, Threads, Ports, Wakeups
+- Size and color can each be switched between CPU, Memory, Energy, Threads, Mach Ports, Wakeups, Net In/Out, Disk Read/Write, Sockets
+- Tooltip shows listening ports and TCP/UDP connections per process (own-user processes without root)
 - Group by app, filter by name, pause/resume (Space)
 - Stdlib-only Python server (uses `top` and `ps`) + a single-page Canvas frontend
 

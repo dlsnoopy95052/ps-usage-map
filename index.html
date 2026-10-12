@@ -48,14 +48,19 @@
 
 <script>
 const fmtBytes = v => v >= 2**30 ? (v/2**30).toFixed(2)+' GB' : v >= 2**20 ? (v/2**20).toFixed(1)+' MB' : (v/1024).toFixed(0)+' KB';
-const fmtNum = (d=1) => v => v.toFixed(d);
+const fmtRate = v => v >= 2**20 ? (v/2**20).toFixed(1)+' MB/s' : v >= 1024 ? (v/1024).toFixed(1)+' KB/s' : v.toFixed(0)+' B/s';
 const METRICS = {
   cpu:     { label:'CPU',      fmt:v => v.toFixed(1)+'%' },
   mem:     { label:'Memory',   fmt:fmtBytes },
   power:   { label:'Energy',   fmt:v => v.toFixed(1) },
   threads: { label:'Threads',  fmt:v => v.toFixed(0) },
-  ports:   { label:'Ports',    fmt:v => v.toFixed(0) },
+  ports:   { label:'Mach Ports', fmt:v => v.toFixed(0) },
+  sockets: { label:'Sockets',  fmt:v => v.toFixed(0) },
   wakeups: { label:'Wakeups',  fmt:v => v.toFixed(0) },
+  net_in:  { label:'Net In',   fmt:fmtRate },
+  net_out: { label:'Net Out',  fmt:fmtRate },
+  disk_read:  { label:'Disk Read',  fmt:fmtRate },
+  disk_write: { label:'Disk Write', fmt:fmtRate },
 };
 const state = { paused:false, size:'mem', color:'cpu', group:'app', filter:'', data:null, rects:[] };
 
@@ -202,6 +207,16 @@ function draw() {
 }
 
 // ---- tooltip ----
+const esc = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function sockHtml(p) {
+  if (!p.sockets) return '';
+  const list = (title, arr, max) => !arr.length ? '' :
+    `<br><span class="k">${title}</span>${arr.length}` +
+    arr.slice(0, max).map(x => `<br>&nbsp;&nbsp;<span style="color:#b9c2cf">${esc(x)}</span>`).join('') +
+    (arr.length > max ? `<br>&nbsp;&nbsp;… +${arr.length - max} more` : '');
+  return list('Listening', p.listen, 8) + list('Connections', p.conns, 8);
+}
+
 const tip = document.getElementById('tip');
 document.getElementById('cv').addEventListener('mousemove', e => {
   const r = e.currentTarget.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
@@ -212,6 +227,7 @@ document.getElementById('cv').addEventListener('mousemove', e => {
     `<span class="k">PID</span>${p.pid}<br><span class="k">User</span>${p.user}<br><span class="k">State</span>${p.state}<br>` +
     Object.entries(METRICS).map(([k,m]) => `<span class="k">${m.label}</span>${m.fmt(p[k])}`).join('<br>') +
     (p.app !== p.name ? `<br><span class="k">App</span>${p.app}` : '') +
+    sockHtml(p) +
     (p.path ? `<br><span class="k">Path</span><span style="word-break:break-all">${p.path}</span>` : '');
   tip.style.display = 'block';
   tip.style.left = Math.min(e.clientX + 14, innerWidth - 380) + 'px';
