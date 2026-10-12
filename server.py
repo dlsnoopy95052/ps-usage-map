@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 INTERVAL = 2  # seconds between samples
 PORT = int(os.environ.get("PORT", "8765"))
 
-STATS = "pid,command,cpu,mem,threads,ports,power,idlew,state,user"
+STATS = "pid,command,cpu,mem,threads,ports,power,state,user"
 UNITS = {"B": 1, "K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
 APP_RE = re.compile(r"([^/]+)\.app/")
 
@@ -217,18 +217,17 @@ def sampler():
             in_table = True
         elif in_table:
             t = line.split()
-            if len(t) < 10 or not t[0].isdigit():
+            if len(t) < 9 or not t[0].isdigit():
                 continue
-            th = t[-6].split("/")[0]
+            th = t[-5].split("/")[0]
             rows.append({
                 "pid": int(t[0]),
-                "command": " ".join(t[1:-8]),
-                "cpu": num(t[-8]),
-                "mem": mem_bytes(t[-7]),
+                "command": " ".join(t[1:-7]),
+                "cpu": num(t[-7]),
+                "mem": mem_bytes(t[-6]),
                 "threads": num(th),
-                "ports": num(t[-5]),
-                "power": num(t[-4]),
-                "wakeups": num(t[-3]),
+                "ports": num(t[-4]),
+                "power": num(t[-3]),
                 "state": t[-2],
                 "user": t[-1],
             })
